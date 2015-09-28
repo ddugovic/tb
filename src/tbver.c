@@ -211,7 +211,7 @@ int main(int argc, char **argv)
   if (!color) exit(1);
 
   if (pcs[WPAWN] || pcs[BPAWN]) {
-    fprintf(stderr, "Can't handle pawns.\n");
+    fprintf(stderr, "rtbver can't verify pawn tables.\n");
     exit(1);
   }
 

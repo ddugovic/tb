@@ -51,7 +51,7 @@ checksum.
 
 **Note 2:** The checksums are **not** md5sums. However, correct md5sums are known as well, and these can also be used to verify integrity. See http://kirill-kryukov.com/chess/tablebases-online/
 
-**Usage:** `rtbgen KQRvKR`   (or `rtbgenp KRPvKR`)  
+**Usage:** `rtbgen KQRvKR`  (or `rtbgenp KRPvKR` for pawnful tables)  
 Produces two compressed files: KQRvKR.rtbw and KQRvKR.rtbz. Both files
 contain an embedded checksum.  
 
@@ -80,7 +80,7 @@ tables are temporarily saved to disk. **This option is necessary to
 generate 6-piece tables on systems with 16 GB RAM.** This option is
 not needed on systems with 24 GB RAM or more.
 
-**Usage:** `rtbver KQRvKR`   (or `rtbverp KRPvKR`)  
+**Usage:** `rtbver KQRvKR`  (or `rtbverp KRPvKR` for pawnful tables)  
 Verifies consistency of KQRvKR.rtbw and KQRvKR.rtbz. This should detect
 (hardware) errors during generation and compression. For technical reasons
 pawnful tables with symmetric material such as KPvKP and KRPvKRP cannot
@@ -110,7 +110,7 @@ See above.
 --print  (or -p)  
 Print embedded checksums. Do not check correctness.
 
-**Alternative usage:** `tbcheck --compare wdl345.txt`
+**Alternative usage:** `tbcheck --compare checksums/wdl345.txt`
 Compares the embedded checksum for each tablebase file listed in wdl345.txt
 with the checksum specified in wdl345.txt. Note that these are not md5sums.
 
@@ -122,11 +122,11 @@ directory.
 
 ### Scripts
 
-The somewhat primitive perl script src/run.pl can be used for generating
+The somewhat primitive perl script run.pl can be used for generating
 and verifying all or part of the tables. Make sure the location of rtbgen,
 rtbgenp, rtbver and rtbverp is in your $PATH variable.
 
-**Usage:** `run.pl --generate`
+**Usage:** `run.pl --generate` or `run.pl --verify`
 
 **Options:**  
 --threads n  (or -t n)  
@@ -138,6 +138,10 @@ found in the current working directory are skipped.
 
 --verify  
 Verify tablebases.
+
+--pieces [QRBNP]
+Only treat tablebases with pieces of given type(s), assuming "subtables"
+have already been generated.
 
 --min n  
 Only treat tablebases with at least n pieces.

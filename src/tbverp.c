@@ -310,7 +310,7 @@ int main(int argc, char **argv)
   }
 
   if (numpawns == 0) {
-    fprintf(stderr, "Expecting pawns.\n");
+    fprintf(stderr, "rtbverp expecting pawns.\n");
     exit(1);
   }
 
@@ -325,7 +325,7 @@ int main(int argc, char **argv)
   symmetric = (i == 8);
 
   if (symmetric) {
-    fprintf(stderr, "Can't handle symmetric tables.\n");
+    fprintf(stderr, "rtbverp can't verify symmetric tables.\n");
     exit(1);
   }
 

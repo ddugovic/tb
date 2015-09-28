@@ -354,7 +354,7 @@ void init_tablebases(void)
 	}
 #endif
 
-  printf("Found %d tablebases.\n", TBnum_piece + TBnum_pawn);
+  printf("Found %d tablebases in %s.\n", TBnum_piece + TBnum_pawn, WDLdir);
 
   init_indices();
 }

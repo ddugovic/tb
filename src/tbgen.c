@@ -618,23 +618,23 @@ int main(int argc, char **argv)
 
 #ifndef SUICIDE
   if (pcs[WKING] != 1 || pcs[BKING] != 1) {
-    fprintf(stderr, "Need one white king and one black king.\n");
+    fprintf(stderr, "rtbgen needs one white king and one black king.\n");
     exit(1);
   }
 
   if (numpcs < 3) {
-    fprintf(stderr, "Need at least 3 pieces.\n");
+    fprintf(stderr, "rtbgen needs at least 3 pieces.\n");
     exit(1);
   }
 #else
   if (numpcs < 2) {
-    fprintf(stderr, "Need at least 2 pieces.\n");
+    fprintf(stderr, "rtbgen needs at least 2 pieces.\n");
     exit(1);
   }
 #endif
 
   if (pcs[WPAWN] || pcs[BPAWN]) {
-    fprintf(stderr, "Can't handle pawns.\n");
+    fprintf(stderr, "rtbgen can't generate pawn tables.\n");
     exit(1);
   }
 

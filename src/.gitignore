@@ -1,0 +1,10 @@
+.depsr
+*.o
+*.P
+*.swp
+objsr
+rtbgen
+rtbgenp
+rtbver
+rtbverp
+tbcheck
