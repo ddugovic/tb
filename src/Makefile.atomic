@@ -1,0 +1,13 @@
+GENTBNAME = atbgen
+GENTBPNAME = atbgenp
+VERTBNAME = atbver
+VERTBPNAME = atbverp
+CLEAN = clean
+
+DEPDIR = .depsr/atomic
+OBJDIR = objsr/atomic
+
+FLAGS += -DATOMIC
+
+include Makefile.general
+

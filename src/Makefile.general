@@ -35,7 +35,7 @@ $(DEPDIR)/%.P: %.c
 		| sed s/$*\.o/$*\.o\ $*\.P/ >$@'
 
 $(CLEAN):
-	rm -f $(TBOBJS:%=$(OBJDIR)/%)
+	rm -f $(GENTBNAME) $(GENTBPNAME) $(VERTBNAME) $(VERTBPNAME) tbcheck $(TBOBJS:%=$(OBJDIR)/%)
 
 $(GENTBNAME): $(GENTBOBJS)
 	$(CC) $(CFLAGS) -o $(GENTBNAME) $(GENTBOBJS:%=$(OBJDIR)/%)

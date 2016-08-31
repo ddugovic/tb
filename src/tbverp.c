@@ -92,11 +92,14 @@ static int pcs2[MAX_PIECES];
 
 #if defined(REGULAR)
 #include "rtbverp.c"
-#elif defined(SUICIDE)
+#endif
+#if defined(SUICIDE)
 #include "stbverp.c"
-#elif defined(ATOMIC)
+#endif
+#if defined(ATOMIC)
 #include "atbverp.c"
-#elif defined(LOSER)
+#endif
+#if defined(LOSER)
 #include "ltbverp.c"
 #endif
 
@@ -310,7 +313,7 @@ int main(int argc, char **argv)
   }
 
   if (numpawns == 0) {
-    fprintf(stderr, "rtbverp expecting pawns.\n");
+    fprintf(stderr, "%s expecting pawns.\n", argv[0]);
     exit(1);
   }
 
@@ -325,7 +328,7 @@ int main(int argc, char **argv)
   symmetric = (i == 8);
 
   if (symmetric) {
-    fprintf(stderr, "rtbverp can't verify symmetric tables.\n");
+    fprintf(stderr, "%s can't verify symmetric tables.\n", argv[0]);
     exit(1);
   }
 

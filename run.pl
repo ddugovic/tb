@@ -49,11 +49,21 @@ sub Process {
       die if system "src/rtbgenp $dopt-t $threads --stats $tb";
     }
   }
+  if ($generate && !-e $tb.".atbz") {
+    print "Generating $tb\n";
+    if ($tb !~ /.*P.*/) {
+      die if system "src/atbgen $dopt-t $threads --stats $tb";
+    } else {
+      die if system "src/atbgenp $dopt-t $threads --stats $tb";
+    }
+  }
   if ($verify) {
     printf "Verifying $tb\n";
     if ($tb !~ /.*P.*/) {
+      die if system "src/atbver -t $threads --log $tb";
       die if system "src/rtbver -t $threads --log $tb";
     } else {
+      die if system "src/atbverp -t $threads --log $tb";
       die if system "src/rtbverp -t $threads --log $tb";
     }
   }

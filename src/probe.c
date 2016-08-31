@@ -4,6 +4,7 @@
   This file is distributed under the terms of the GNU GPL, version 2.
 */
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -2338,6 +2339,7 @@ int probe_table(int *restrict pieces, int *restrict gpos, int wtm)
   ubyte res;
   int pos[TBPIECES];
 
+  assert(numpcs > 0);
   key = 0ULL;
   for (i = 0; i < numpcs; i++)
     key += tb_piece_key[pieces[i]];
@@ -2349,6 +2351,7 @@ int probe_table(int *restrict pieces, int *restrict gpos, int wtm)
 // in loser's, no non-king material at all means the other side had already won
   if (!key) return -2;
 #endif
+  assert(key);
 
   ptr2 = TB_hash[key >> (64 - TBHASHBITS)];
   for (i = 0; i < HSHMAX; i++)
@@ -3029,8 +3032,11 @@ static __attribute__ ((noinline)) void probe_failed(int *pieces)
     for (j = 0; j < numpcs; j++)
       if (pieces[j] == BKING - i)
 	str[k++] = pchr[i];
-  str[k] = 0;
+  str[k] = '\0';
   fprintf(stderr, "Missing table: %s\n", str);
+#if !defined(SUICIDE) && !defined(GIVEAWAY)
+  assert(strchr(str, 'K') < strrchr(str, 'K'));
+#endif
   exit(1);
 }
 

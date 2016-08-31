@@ -79,11 +79,14 @@ ubyte *restrict copybuf = NULL;
 
 #if defined(REGULAR)
 #include "rtbgenp.c"
-#elif defined(SUICIDE)
+#endif
+#if defined(SUICIDE)
 #include "stbgenp.c"
-#elif defined(ATOMIC)
+#endif
+#if defined(ATOMIC)
 #include "atbgenp.c"
-#elif defined(LOSER)
+#endif
+#if defined(LOSER)
 #include "ltbgenp.c"
 #endif
 
@@ -726,23 +729,23 @@ int main(int argc, char **argv)
 
 #ifndef SUICIDE
   if (pcs[WKING] != 1 || pcs[BKING] != 1) {
-    fprintf(stderr, "Need one white king and one black king.\n");
+    fprintf(stderr, "%s needs one white king and one black king.\n", argv[0]);
     exit(1);
   }
 
   if (numpcs < 3) {
-    fprintf(stderr, "Need at least 3 pawns or pieces.\n");
+    fprintf(stderr, "%s needs at least 3 pawns or pieces.\n", argv[0]);
     exit(1);
   }
 #else
   if (numpcs < 2) {
-    fprintf(stderr, "Need at least 2 pawns or pieces.\n");
+    fprintf(stderr, "%s needs at least 2 pawns or pieces.\n", argv[0]);
     exit(1);
   }
 #endif
 
   if (numpawns == 0) {
-    fprintf(stderr, "Expecting pawns.\n");
+    fprintf(stderr, "%s expecting pawns.\n", argv[0]);
     exit(1);
   }
 

@@ -4,8 +4,8 @@ VERTBNAME = rtbver
 VERTBPNAME = rtbverp
 CLEAN = clean
 
-DEPDIR = .depsr
-OBJDIR = objsr
+DEPDIR = .depsr/regular
+OBJDIR = objsr/regular
 
 FLAGS += -DREGULAR
 

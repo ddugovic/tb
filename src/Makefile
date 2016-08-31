@@ -25,10 +25,17 @@ CFLAGS = -g -O3 -march=corei7 -msse4.2 -pipe -D_GNU_SOURCE -Wall -std=c99 -Wstri
 
 export FLAGS CC CFLAGS
 
-all: rtbgen rtbgenp rtbver rtbverp tbcheck
+all: atbgen atbgenp atbver atbverp rtbgen rtbgenp rtbver rtbverp tbcheck
 
-rtbgen rtbgenp rtbver rtbverp tbcheck clean:
+atbgen atbgenp atbver atbverp:
+	@$(MAKE) -f Makefile.atomic $@
+
+rtbgen rtbgenp rtbver rtbverp tbcheck:
 	@$(MAKE) -f Makefile.regular $@
 
-.PHONY: rtbgen rtbgenp rtbver rtbverp tbcheck clean
+clean:
+	@$(MAKE) -f Makefile.atomic clean
+	@$(MAKE) -f Makefile.regular clean
+
+.PHONY: atbgen atbgenp atbver atbverp rtbgen rtbgenp rtbver rtbverp tbcheck clean
 

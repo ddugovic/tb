@@ -3,8 +3,8 @@
 *.P
 *.swp
 objsr
-rtbgen
-rtbgenp
-rtbver
-rtbverp
+[ar]tbgen
+[ar]tbgenp
+[ar]tbver
+[ar]tbverp
 tbcheck
