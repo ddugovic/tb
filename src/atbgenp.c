@@ -360,7 +360,6 @@ void probe_captures_w(struct thread_data *thread)
 
   LOOP_CAPTS {
     FILL_OCC_CAPTS {
-      // FIXME: test whether this improves efficiency...
       CHECK_WHITE_PIECES;
       if (is_attacked(p[white_king], pcs2, occ, p)) continue;
       int v = probe_tb(pt2, p, 0, occ, -2, 2);
@@ -397,7 +396,6 @@ void probe_captures_b(struct thread_data *thread)
 
   LOOP_CAPTS {
     FILL_OCC_CAPTS {
-      // FIXME: test whether this improves efficiency...
       CHECK_BLACK_PIECES;
       if (is_attacked(p[black_king], pcs2, occ, p)) continue;
       int v = probe_tb(pt2, p, 1, occ, -2, 2);
@@ -435,6 +433,7 @@ void probe_pivot_captures(struct thread_data *thread)
   LOOP_CAPTS_PIVOT {
     FILL_OCC_CAPTS_PIVOT {
       CHECK_PIECES_PIVOT;
+if (p[white_king] != KING || p[black_king] != KING) continue;
       if (is_attacked(p[king], pcs2, occ, p)) continue;
       int v = probe_tb(pt2, p, wtm, occ, -2, 2);
       MAKE_IDX2_PIVOT;
@@ -507,8 +506,6 @@ void calc_captures_w(void)
     run_threaded(calc_pawn_illegal_w, work_g, 1);
   }
 
-  if (n < 4) return;
-
   for (i = 0; i < n; i++) { // loop over black pieces
     if (!(pt[i] & 0x08) || i == black_king) continue;
     for (k = 0, j = 0; black_all[k] >= 0; k++)
@@ -536,8 +533,6 @@ void calc_captures_b(void)
     capturing_pawn = i;
     run_threaded(calc_pawn_illegal_b, work_g, 1);
   }
-
-  if (n < 4) return;
 
   for (i = 0; i < n; i++) { // loop over white pieces
     if ((pt[i] & 0x08) || i == white_king) continue;

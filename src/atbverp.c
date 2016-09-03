@@ -1019,8 +1019,7 @@ void probe_captures_w(struct thread_data *thread)
 
   LOOP_CAPTS {
     FILL_OCC_CAPTS {
-      // FIXME: test whether this improves efficiency...
-//      CHECK_WHITE_PIECES;
+      CHECK_WHITE_PIECES;
       if (is_attacked(p[white_king], pcs2, occ, p)) continue;
       int v = probe_tb(pt2, p, 0, occ, -2, 2);
       MAKE_IDX2;
@@ -1051,8 +1050,7 @@ void probe_captures_b(struct thread_data *thread)
 
   LOOP_CAPTS {
     FILL_OCC_CAPTS {
-      // FIXME: test whether this improves efficiency...
-//      CHECK_BLACK_PIECES;
+      CHECK_BLACK_PIECES;
       if (is_attacked(p[black_king], pcs2, occ, p)) continue;
       int v = probe_tb(pt2, p, 1, occ, -2, 2);
       MAKE_IDX2;
@@ -1084,6 +1082,7 @@ void probe_pivot_captures(struct thread_data *thread)
   LOOP_CAPTS_PIVOT {
     FILL_OCC_CAPTS_PIVOT {
       CHECK_PIECES_PIVOT;
+if (p[white_king] != KING || p[black_king] != KING) continue;
       if (is_attacked(p[king], pcs2, occ, p)) continue;
       int v = probe_tb(pt2, p, wtm, occ, -2, 2);
       MAKE_IDX2_PIVOT;
@@ -1154,8 +1153,6 @@ void calc_captures_w(void)
   }
 #endif
 
-  if (n < 4) return;
-
   for (i = 0; i < n; i++) { // loop over black pieces
     if (!(pt[i] & 0x08) || i == black_king) continue;
     for (k = 0, j = 0; black_all[k] >= 0; k++)
@@ -1185,8 +1182,6 @@ void calc_captures_b(void)
     run_threaded(calc_pawn_illegal_b, work_g, 1);
   }
 #endif
-
-  if (n < 4) return;
 
   for (i = 0; i < n; i++) { // loop over white pieces
     if ((pt[i] & 0x08) || i == white_king) continue;
@@ -1222,6 +1217,7 @@ int probe_pawn_capt(int k, int sq, long64 idx, int king, int clr, int wtm, bitbo
 	if (i != t && ((pt[i] & 0x08) != clr))
 	  pcs[m++] = i;
       pcs[m] = -1;
+if (p[white_king] != KING || p[black_king] != KING) continue;
       if (is_attacked(p[king], pcs, occ, p)) continue;
       for (i = 0; i < numpcs; i++) {
 	pos[i] = p[i];
@@ -1242,6 +1238,7 @@ int probe_pawn_capt(int k, int sq, long64 idx, int king, int clr, int wtm, bitbo
       for (i = 0, m = 0; i < numpcs; i++)
 	if (i != t && (pt[i] & 0x08) != clr) pcs[m++] = i;
       pcs[m] = -1;
+if (p[white_king] != KING || p[black_king] != KING) continue;
       if (is_attacked(p[king], pcs, occ, p)) continue;
       for (i = 0; i < numpcs; i++) {
 	pos[i] = p[i];
@@ -1272,6 +1269,7 @@ void calc_pawn_captures_w(struct thread_data *thread)
     int v = -CAPT_DRAW;
     for (i = 0; i < numpawns; i++) {
       if (!pw[i]) continue; // loop through white pawns
+if (p[white_king] != KING || p[black_king] != KING) continue;
       int val = probe_pawn_capt(i, p[i] + 0x08, idx & ~mask[i], white_king, 0, 0, occ & ~bit[p[i]], p);
       if (val > v) v = val;
     }
@@ -1291,6 +1289,7 @@ void calc_pawn_captures_b(struct thread_data *thread)
     int v = -CAPT_DRAW;
     for (i = 0; i < numpawns; i++) {
       if (pw[i]) continue; // loop through black pawns
+if (p[white_king] != KING || p[black_king] != KING) continue;
       int val = probe_pawn_capt(i, p[i] - 0x08, idx & ~mask[i], black_king, 8, 1, occ & ~bit[p[i]], p);
       if (val > v) v = val;
     }
