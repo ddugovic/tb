@@ -4,49 +4,7 @@
   This file is distributed under the terms of the GNU GPL, version 2.
 */
 
-static char pc[] = { 0, 'P', 'N', 'B', 'R', 'Q', 'K', 0, 0, 'p', 'n', 'b', 'r', 'q', 'k', 0};
-
-static char fen_buf[128];
-
-void print_fen(long64 idx, int wtm)
-{
-  long64 idx2 = idx ^ pw_mask;
-  int i, j;
-  int n = numpcs;
-  int p[MAX_PIECES];
-  ubyte bd[64];
-  char *str = fen_buf;
-
-  memset(bd, 0, 64);
-
-  for (i = n - 1; i > 0; i--, idx2 >>= 6)
-    bd[p[i] = idx2 & 0x3f] = i + 1;
-  bd[p[0] = piv_sq[idx2]] = 1;
-
-  for (i = 56; i >= 0; i -= 8) {
-    int cnt = 0;
-    for (j = i; j < i + 8; j++)
-      if (!bd[j])
-        cnt++;
-      else {
-        if (cnt > 0) {
-	  *str++ = '0' + cnt;
-          cnt = 0;
-        }
-	*str++ = pc[pt[bd[j]-1]];
-      }
-    if (cnt) *str++ = '0' + cnt;
-    if (i) *str++ = '/';
-  }
-  *str++ = ' ';
-  *str++ = wtm ? 'w' : 'b';
-  *str++ = ' ';
-  *str++ = '-';
-  *str++ = ' ';
-  *str++ = '-';
-  *str++ = '\n';
-  *str = 0;
-}
+#include "fenp.c"
 
 static LOCK_T stats_mutex;
 
@@ -437,8 +395,7 @@ void print_longest(FILE *F)
 {
   if (lw_ply >= 0) {
     fprintf(F, "Longest win for white: %d ply; ", lw_ply);
-    print_fen(lw_idx, lw_clr);
-    fputs(fen_buf, F);
+    print_fen(F, lw_idx, lw_clr);
     if (lw_ply > glw_ply) {
       glw_ply = lw_ply;
       strcpy(glw_fen, fen_buf);
@@ -446,8 +403,7 @@ void print_longest(FILE *F)
   }
   if (lcw_ply >= 0) {
     fprintf(F, "Longest cursed win for white: %d ply; ", lcw_ply);
-    print_fen(lcw_idx, lcw_clr);
-    fputs(fen_buf, F);
+    print_fen(F, lcw_idx, lcw_clr);
     if (lcw_ply > glcw_ply) {
       glcw_ply = lcw_ply;
       strcpy(glcw_fen, fen_buf);
@@ -455,8 +411,7 @@ void print_longest(FILE *F)
   }
   if (lcb_ply >= 0) {
     fprintf(F, "Longest cursed win for black: %d ply; ", lcb_ply);
-    print_fen(lcb_idx, lcb_clr);
-    fputs(fen_buf, F);
+    print_fen(F, lcb_idx, lcb_clr);
     if (lcb_ply > glcb_ply) {
       glcb_ply = lcb_ply;
       strcpy(glcb_fen, fen_buf);
@@ -464,8 +419,7 @@ void print_longest(FILE *F)
   }
   if (lb_ply >= 0) {
     fprintf(F, "Longest win for black: %d ply; ", lb_ply);
-    print_fen(lb_idx, lb_clr);
-    fputs(fen_buf, F);
+    print_fen(F, lb_idx, lb_clr);
     if (lb_ply > glb_ply) {
       glb_ply = lb_ply;
       strcpy(glb_fen, fen_buf);
