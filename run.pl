@@ -35,6 +35,12 @@ GetOptions('threads=i' => \$threads,
 	   'max=i' => \$max,
 	   'disk' => \$disk);
 
+sub Execute {
+    my $cmd = shift;
+    print "$cmd\n";
+    die if system($cmd);
+}
+
 sub Process {
   my($tb) = @_;
   my $len = length($tb) - 1;
@@ -48,29 +54,29 @@ sub Process {
     $dopt = "-d ";
   }
   if ($generate && !-e $tb.".rtbz") {
-    print "Generating $tb\n";
+    print "\nGenerating $tb\n";
     if ($tb !~ /.*P.*/) {
-      die if system "src/rtbgen $wopt$dopt-t $threads --stats $tb";
+      Execute("src/rtbgen $wopt$dopt-t $threads --stats $tb");
     } else {
-      die if system "src/rtbgenp $wopt$dopt-t $threads --stats $tb";
+      Execute("src/rtbgenp $wopt$dopt-t $threads --stats $tb");
     }
   }
   if ($generate && !-e $tb.".atbz") {
-    print "Generating $tb\n";
+    print "\nGenerating $tb\n";
     if ($tb !~ /.*P.*/) {
-      die if system "src/atbgen $wopt$dopt-t $threads --stats $tb";
+      Execute("src/atbgen $wopt$dopt-t $threads --stats $tb");
     } else {
-      die if system "src/atbgenp $wopt$dopt-t $threads --stats $tb";
+      Execute("src/atbgenp $wopt$dopt-t $threads --stats $tb");
     }
   }
   if ($verify) {
-    printf "Verifying $tb\n";
+    printf "\nVerifying $tb\n";
     if ($tb !~ /.*P.*/) {
-      die if system "src/atbver $wopt-t $threads --log $tb";
-      die if system "src/rtbver $wopt-t $threads --log $tb";
+      Execute("src/atbver $wopt-t $threads --log $tb");
+      Execute("src/rtbver $wopt-t $threads --log $tb");
     } else {
-      die if system "src/atbverp $wopt-t $threads --log $tb";
-      die if system "src/rtbverp $wopt-t $threads --log $tb";
+      Execute("src/atbverp $wopt-t $threads --log $tb");
+      Execute("src/rtbverp $wopt-t $threads --log $tb");
     }
   }
 }
