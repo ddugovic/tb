@@ -21,6 +21,7 @@ use Getopt::Long;
 $threads = 4;
 $generate = '';
 $verify = '';
+$wdl = '';
 $pieces = 'QRBNP';
 $min = 3;
 $max = 5;
@@ -28,6 +29,7 @@ $disk = '';
 GetOptions('threads=i' => \$threads,
 	   'generate' => \$generate,
 	   'verify' => \$verify,
+	   'wdl' => \$wdl,
 	   'pieces=s' => \$pieces,
 	   'min=i' => \$min,
 	   'max=i' => \$max,
@@ -37,6 +39,10 @@ sub Process {
   my($tb) = @_;
   my $len = length($tb) - 1;
   if ($len < $min || $len > $max) { return; }
+  $wopt = "";
+  if ($wdl) {
+    $wopt = "-w ";
+  }
   $dopt = "";
   if ($disk && $len == 6) {
     $dopt = "-d ";
@@ -44,27 +50,27 @@ sub Process {
   if ($generate && !-e $tb.".rtbz") {
     print "Generating $tb\n";
     if ($tb !~ /.*P.*/) {
-      die if system "src/rtbgen $dopt-t $threads --stats $tb";
+      die if system "src/rtbgen $wopt$dopt-t $threads --stats $tb";
     } else {
-      die if system "src/rtbgenp $dopt-t $threads --stats $tb";
+      die if system "src/rtbgenp $wopt$dopt-t $threads --stats $tb";
     }
   }
   if ($generate && !-e $tb.".atbz") {
     print "Generating $tb\n";
     if ($tb !~ /.*P.*/) {
-      die if system "src/atbgen $dopt-t $threads --stats $tb";
+      die if system "src/atbgen $wopt$dopt-t $threads --stats $tb";
     } else {
-      die if system "src/atbgenp $dopt-t $threads --stats $tb";
+      die if system "src/atbgenp $wopt$dopt-t $threads --stats $tb";
     }
   }
   if ($verify) {
     printf "Verifying $tb\n";
     if ($tb !~ /.*P.*/) {
-      die if system "src/atbver -t $threads --log $tb";
-      die if system "src/rtbver -t $threads --log $tb";
+      die if system "src/atbver $wopt-t $threads --log $tb";
+      die if system "src/rtbver $wopt-t $threads --log $tb";
     } else {
-      die if system "src/atbverp -t $threads --log $tb";
-      die if system "src/rtbverp -t $threads --log $tb";
+      die if system "src/atbverp $wopt-t $threads --log $tb";
+      die if system "src/rtbverp $wopt-t $threads --log $tb";
     }
   }
 }

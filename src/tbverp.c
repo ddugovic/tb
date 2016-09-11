@@ -20,6 +20,7 @@
 #include "probe.c"
 #include "board.c"
 
+#define MAXERRORS 10
 #define MAXPIECES 8
 
 struct tb_handle;
@@ -128,8 +129,9 @@ void error(char *str, ...)
     fflush(L);
   }
   num_errors++;
-  if (num_errors == 10) {
+  if (num_errors == MAXERRORS) {
     if (log) fclose(L);
+    assert(0);
     exit(1);
   }
 }
@@ -210,7 +212,7 @@ void calc_pawn_table_threaded(void)
 static struct option options[] = {
   { "threads", 1, NULL, 't' },
   { "log", 0, NULL, 'l' },
-//  { "wdl", 0, NULL, 'w' },
+  { "wdl", 0, NULL, 'w' },
   { 0, 0, NULL, 0 }
 };
 
@@ -224,8 +226,7 @@ int main(int argc, char **argv)
 
   numthreads = 1;
   do {
-//    val = getopt_long(argc, argv, "t:lwc", options, &longindex);
-    val = getopt_long(argc, argv, "t:ld", options, &longindex);
+    val = getopt_long(argc, argv, "t:lwd", options, &longindex);
     switch (val) {
     case 't':
       numthreads = atoi(optarg);
