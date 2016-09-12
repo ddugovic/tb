@@ -432,19 +432,19 @@ void print_global_longest(FILE *F)
 {
   if (glw_ply >= 0) {
     fprintf(F, "Longest win for white: %d ply; ", glw_ply);
-    fputs(glw_fen, F);
+    fprintf(F, "%s\n", glw_fen);
   }
   if (glcw_ply >= 0) {
     fprintf(F, "Longest cursed win for white: %d ply; ", glcw_ply);
-    fputs(glcw_fen, F);
+    fprintf(F, "%s\n", glcw_fen);
   }
   if (glcb_ply >= 0) {
     fprintf(F, "Longest cursed win for black: %d ply; ", glcb_ply);
-    fputs(glcb_fen, F);
+    fprintf(F, "%s\n", glcb_fen);
   }
   if (glb_ply >= 0) {
     fprintf(F, "Longest win for black: %d ply; ", glb_ply);
-    fputs(glb_fen, F);
+    fprintf(F, "%s\n", glb_fen);
   }
   fprintf(F, "\n");
 }

@@ -102,17 +102,17 @@ static long64 __inline__ MakeMove(long64 idx, int k, int sq)
 // use bit_set
 #if 1
 
-#define bit_set(x,y) { long64 dummy = y; asm("bts %1,%0" : "+r" (x) : "r" (dummy));}
-#define bit_set(x,y) { long64 dummy = y; asm("bts %1,%0" : "+r" (x) : "r" (dummy));}
+#define bit_set(x,y) { long64 dummy = y; __asm__("bts %1,%0" : "+r" (x) : "r" (dummy));}
+#define bit_set(x,y) { long64 dummy = y; __asm__("bts %1,%0" : "+r" (x) : "r" (dummy));}
 
 #define jump_bit_set(x,y,lab) \
-  asm goto ("bt %1, %0; jc %l[lab]" : : "r" (x), "r" ((long64)(y)) : : lab);
+  __asm__ goto ("bt %1, %0; jc %l[lab]" : : "r" (x), "r" ((long64)(y)) : : lab);
 
 #define jump_bit_clear(x,y,lab) \
-  asm goto ("bt %1, %0; jnc %l[lab]" : : "r" (x), "r" ((long64)(y)) : : lab);
+  __asm__ goto ("bt %1, %0; jnc %l[lab]" : : "r" (x), "r" ((long64)(y)) : : lab);
 
 #define bit_set_jump_set(x,y,lab) \
-  asm goto ("bts %1, %0; jc %l[lab]" : "+r" (x) : "r" ((long64)(y)) : : lab);
+  __asm__ goto ("bts %1, %0; jc %l[lab]" : "+r" (x) : "r" ((long64)(y)) : : lab);
 
 #define FILL_OCC64_cheap \
   occ = 0; \
@@ -209,6 +209,11 @@ static void func(int k, ubyte *table, long64 idx, bitboard occ, int *p, ##__VA_A
 
 #define MARK_PIVOT(func, ...) \
 static void func##_pivot(ubyte *table, long64 idx, bitboard occ, int *p, ##__VA_ARGS__)
+
+#if 0
+#define WhiteKingMoves (KingRange(p[0]) & ~occ)
+#define BlackKingMoves (KingRange(p[1]) & ~occ)
+#endif
 
 #define MARK_BEGIN_PIVOT \
   int sq; \
@@ -323,6 +328,34 @@ static void func##_pivot(ubyte *table, long64 idx, bitboard occ, int *p, ##__VA_
     k = white_pcs[j]; \
     long64 idx3 = idx2 | (p[k] << shift[i]); \
     func(k, table_w, idx3 & ~mask[k], occ, p, ##__VA_ARGS__); \
+  } } while (0)
+#endif
+
+#define CHECK_WHITE_PIECES_PIVOT \
+  for (j = 0; white_pcs[j] >= 0; j++) { \
+    k = white_pcs[j]; \
+    if (!(p[k] & 0x24) && mirror[p[k]] >= 0) break; \
+  } \
+  if (white_pcs[j] < 0) continue
+
+#ifndef ATOMIC
+#define LOOP_WHITE_PIECES_PIVOT(func, ...) \
+  do { for (j = 0; white_pcs[j] >= 0; j++) { \
+    k = white_pcs[j]; \
+    if ((p[k] & 0x24) || mirror[p[k]] < 0) continue; \
+    long64 idx3 = idx2 | tri0x40[p[k]]; \
+    func(k, table_b, idx3 & ~mask[k], occ, p, ##__VA_ARGS__); \
+  } } while (0)
+#else
+#define LOOP_WHITE_PIECES_PIVOT(func, ...) \
+  do { \
+    bitboard bits = king_range[p[white_king]]; \
+    for (j = 1; white_pcs[j] >= 0; j++) { \
+      k = white_pcs[j]; \
+      if (bit[p[k]] & bits) continue; \
+      if ((p[k] & 0x24) || mirror[p[k]] < 0) continue; \
+      long64 idx3 = idx2 | tri0x40[p[k]]; \
+      func(k, table_b, idx3 & ~mask[k], occ, p, ##__VA_ARGS__); \
   } } while (0)
 #endif
 

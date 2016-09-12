@@ -4,6 +4,9 @@
   This file is distributed under the terms of the GNU GPL, version 2.
 */
 
+#ifndef FENP_H
+#define FENP_H
+
 static char pc[] = { 0, 'P', 'N', 'B', 'R', 'Q', 'K', 0, 0, 'p', 'n', 'b', 'r', 'q', 'k', 0};
 
 static char fen_buf[128];
@@ -44,7 +47,7 @@ void print_fen(FILE *F, long64 idx, int wtm)
   *str++ = '-';
   *str++ = ' ';
   *str++ = '-';
-  *str++ = '\n';
   *str = 0;
-  fputs(fen_buf, F);
+  fprintf(F, "%s\n", fen_buf);
 }
+#endif

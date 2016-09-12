@@ -466,34 +466,16 @@ static int is_attacked(int sq, int *pcs, bitboard occ, int *p)
 
 static int check_mate(int *pcs, long64 idx0, ubyte *table, bitboard occ, int *p)
 {
-  int sq;
+  int k, sq;
   long64 idx, idx2;
   bitboard bb;
 
-  int k = *pcs++;
-  if (k == 0) { // white king
-    bb = WhiteKingMoves;
-    while (bb) {
-      sq = FirstOne(bb);
-      idx2 = MakeMove0(idx0, sq);
-      if (table[idx2] < WDL_ILLEGAL) return 0;
-      ClearFirst(bb);
-    }
-  } else { // otherwise k == 1, i.e. black king
-    bb = BlackKingMoves;
-    while (bb) {
-      sq = FirstOne(bb);
-      idx2 = MakeMove1(idx0, sq);
-      if (table[idx2] < WDL_ILLEGAL) return 0;
-      ClearFirst(bb);
-    }
-  }
   while ((k = *pcs++) >= 0) {
-    bb = PieceMoves2(p[k], pt[k], occ);
+    bb = PieceMoves(p[k], pt[k], occ);
     idx = idx0 & ~mask[k];
     while (bb) {
       sq = FirstOne(bb);
-      idx2 = MakeMove2(idx, k, sq);
+      idx2 = MakeMove(idx, k, sq);
       if (table[idx2] < WDL_ILLEGAL) return 0;
       ClearFirst(bb);
     }
@@ -559,22 +541,9 @@ MARK(mark_illegal)
   MARK_END;
 }
 
-MARK_PIVOT0(mark_capt_wins)
+MARK_PIVOT(mark_capt_wins)
 {
-  MARK_BEGIN_PIVOT0;
-  if (table[idx2] < WDL_ILLEGAL) {
-    table[idx2] = CAPT_WIN;
-    if (PIVOT_ON_DIAG(idx2)) {
-      long64 idx3 = PIVOT_MIRROR(idx2);
-      table[idx3] = CAPT_WIN;
-    }
-  }
-  MARK_END;
-}
-
-MARK_PIVOT1(mark_capt_wins)
-{
-  MARK_BEGIN_PIVOT1;
+  MARK_BEGIN_PIVOT;
   if (table[idx2] < WDL_ILLEGAL) {
     table[idx2] = CAPT_WIN;
     if (PIVOT_ON_DIAG(idx2)) {
@@ -593,20 +562,9 @@ MARK(mark_capt_wins)
   MARK_END;
 }
 
-MARK_PIVOT0(mark_capt_value, ubyte v)
+MARK_PIVOT(mark_capt_value, ubyte v)
 {
-  MARK_BEGIN_PIVOT0;
-  SET_CAPT_VALUE(table[idx2], v);
-  if (PIVOT_ON_DIAG(idx2)) {
-    long64 idx3 = PIVOT_MIRROR(idx2);
-    SET_CAPT_VALUE(table[idx3], v);
-  }
-  MARK_END;
-}
-
-MARK_PIVOT1(mark_capt_value, ubyte v)
-{
-  MARK_BEGIN_PIVOT1;
+  MARK_BEGIN_PIVOT;
   SET_CAPT_VALUE(table[idx2], v);
   if (PIVOT_ON_DIAG(idx2)) {
     long64 idx3 = PIVOT_MIRROR(idx2);
@@ -622,20 +580,9 @@ MARK(mark_capt_value, ubyte v)
   MARK_END;
 }
 
-MARK_PIVOT0(mark_capt_losses)
+MARK_PIVOT(mark_capt_losses)
 {
-  MARK_BEGIN_PIVOT0;
-  SET_CAPT_LOSS(table[idx2]);
-  if (PIVOT_ON_DIAG(idx2)) {
-    long64 idx3 = PIVOT_MIRROR(idx2);
-    SET_CAPT_LOSS(table[idx3]);
-  }
-  MARK_END;
-}
-
-MARK_PIVOT1(mark_capt_losses)
-{
-  MARK_BEGIN_PIVOT1;
+  MARK_BEGIN_PIVOT;
   SET_CAPT_LOSS(table[idx2]);
   if (PIVOT_ON_DIAG(idx2)) {
     long64 idx3 = PIVOT_MIRROR(idx2);
@@ -657,10 +604,10 @@ void calc_illegal_w(struct thread_data *thread)
 {
   BEGIN_CAPTS_PIVOT_NOPROBE;
 
-  LOOP_CAPTS_PIVOT1 {
-    FILL_OCC_CAPTS_PIVOT1 {
-      MAKE_IDX2_PIVOT1;
-      LOOP_WHITE_PIECES_PIVOT1(mark_illegal);
+  LOOP_CAPTS_PIVOT {
+    FILL_OCC_CAPTS_PIVOT {
+      MAKE_IDX2_PIVOT;
+      LOOP_WHITE_PIECES_PIVOT(mark_illegal);
     }
   }
 }
@@ -669,10 +616,10 @@ void calc_illegal_b(struct thread_data *thread)
 {
   BEGIN_CAPTS_PIVOT_NOPROBE;
 
-  LOOP_CAPTS_PIVOT0 {
-    FILL_OCC_CAPTS_PIVOT0 {
-      MAKE_IDX2_PIVOT0;
-      LOOP_BLACK_PIECES_PIVOT0(mark_illegal);
+  LOOP_CAPTS_PIVOT {
+    FILL_OCC_CAPTS_PIVOT {
+      MAKE_IDX2_PIVOT;
+      LOOP_BLACK_PIECES_PIVOT(mark_illegal);
     }
   }
 }
@@ -683,6 +630,7 @@ void probe_captures_w(struct thread_data *thread)
 
   LOOP_CAPTS {
     FILL_OCC_CAPTS {
+      if (n < 4) continue; // FIXME prevent illegal captures
       if (is_attacked(p[white_king], pcs2, occ, p)) continue;
       int v = probe_tb(pt2, p, 0, occ, -2, 2);
       MAKE_IDX2;
@@ -716,6 +664,7 @@ void probe_captures_b(struct thread_data *thread)
 
   LOOP_CAPTS {
     FILL_OCC_CAPTS {
+      if (n < 4) continue; // FIXME prevent illegal captures
       if (is_attacked(p[black_king], pcs2, occ, p)) continue;
       int v = probe_tb(pt2, p, 1, occ, -2, 2);
       MAKE_IDX2;
@@ -749,7 +698,7 @@ void calc_captures_w(void)
   int n = numpcs;
 
   captured_piece = black_king;
-  run_threaded(calc_illegal_w, work_piv1, 1);
+  run_threaded(calc_illegal_w, work_piv, 1);
 
   for (i = 2; i < n; i++) { // loop over black pieces
     if (!(pt[i] & 0x08)) continue;
@@ -767,7 +716,7 @@ void calc_captures_b(void)
   int i, j, k;
   int n = numpcs;
 
-  run_threaded(calc_illegal_b, work_piv0, 1);
+  run_threaded(calc_illegal_b, work_piv, 1);
 
   for (i = 2; i < n; i++) { // loop over white pieces
     if (pt[i] & 0x08) continue;
@@ -804,8 +753,10 @@ void load_wdl(struct thread_data *thread)
   if (idx == end) return;
   for (i = n - 1, idx2 = idx; i > 1; i--, idx2 >>= 6)
     pos[perm[i]] = idx2 & 0x3f;
+#if 0
   pos[perm[0]] = KK_inv[idx2][0];
   pos[perm[1]] = KK_inv[idx2][1];
+#endif
   idx2_p = encode_piece(entry, norm, pos, factor);
   __builtin_prefetch(&src[idx2_p], 0, 3);
   idx_p = idx;
@@ -815,8 +766,10 @@ void load_wdl(struct thread_data *thread)
     if (v1 >= WDL_ILLEGAL) continue;
     for (i = n - 1, idx2 = idx; i > 1; i--, idx2 >>= 6)
       pos[perm[i]] = idx2 & 0x3f;
+#if 0
     pos[perm[0]] = KK_inv[idx2][0];
     pos[perm[1]] = KK_inv[idx2][1];
+#endif
     idx2 = encode_piece(entry, norm, pos, factor);
     __builtin_prefetch(&src[idx2], 0, 3);
     v2 = src[idx2_p];
@@ -892,8 +845,10 @@ void load_dtz(struct thread_data *thread)
   if (idx == end) return;
   for (i = n - 1, idx2 = idx; i > 1; i--, idx2 >>= 6)
     pos[perm[i]] = idx2 & 0x3f;
+#if 0
   pos[perm[0]] = KK_inv[idx2][0];
   pos[perm[1]] = KK_inv[idx2][1];
+#endif
   idx2_p = encode_piece(entry, norm, pos, factor);
   __builtin_prefetch(&src[idx2_p], 0, 3);
   idx_p = idx;
@@ -906,8 +861,10 @@ void load_dtz(struct thread_data *thread)
     }
     for (i = n - 1, idx2 = idx; i > 1; i--, idx2 >>= 6)
       pos[perm[i]] = idx2 & 0x3f;
+#if 0
     pos[perm[0]] = KK_inv[idx2][0];
     pos[perm[1]] = KK_inv[idx2][1];
+#endif
     idx2 = encode_piece(entry, norm, pos, factor);
     __builtin_prefetch(&src[idx2], 0, 3);
     v2 = src[idx2_p];
@@ -921,7 +878,7 @@ error("DTZ_ERROR: idx = %"PRIu64", v1 = %d, v2 = %d, idx2 = %"PRIu64"\n", idx_p,
 
   v2 = src[idx2_p];
   table[idx_p] = wdl_to_dtz[v1_p][v2];
-if(table[idx_p]==DTZ_ERROR)
+if(unlikely(table[idx_p]==DTZ_ERROR))
 error("DTZ_ERROR: idx = %"PRIu64", v1 = %d, v2 = %d, idx2 = %"PRIu64"\n", idx_p, v1_p, v2, idx2_p);
 }
 
@@ -950,8 +907,10 @@ void load_dtz_mapped(struct thread_data *thread)
     int wdl = wdl_tbl_to_wdl[v1];
     for (i = n - 1, idx2 = idx; i > 1; i--, idx2 >>= 6)
       pos[perm[i]] = idx2 & 0x3f;
+#if 0
     pos[perm[0]] = KK_inv[idx2][0];
     pos[perm[1]] = KK_inv[idx2][1];
+#endif
     idx2 = encode_piece(entry, norm, pos, factor);
     v2 = map[wdl][src[idx2]];
     table[idx] = wdl_to_dtz[v1][v2];
@@ -962,37 +921,17 @@ error("DTZ_ERROR: idx = %"PRIu64", wdl = %d, v1 = %d, v2 = %d, idx2 = %"PRIu64"\
 
 static int compute(int *pcs, long64 idx0, ubyte *table, bitboard occ, int *p)
 {
-  int sq;
+  int k, sq;
   long64 idx, idx2;
   bitboard bb;
   int best = DTZ_ILLEGAL;
 
-  int k = *pcs++;
-  if (k == 0) { // white king
-    bb = WhiteKingMoves;
-    while (bb) {
-      sq = FirstOne(bb);
-      idx2 = MakeMove0(idx0, sq);
-      int v = table[idx2];
-      if (v > best) best = v;
-      ClearFirst(bb);
-    }
-  } else { // otherwise k == 1, i.e. black king
-    bb = BlackKingMoves;
-    while (bb) {
-      sq = FirstOne(bb);
-      idx2 = MakeMove1(idx0, sq);
-      int v = table[idx2];
-      if (v > best) best = v;
-      ClearFirst(bb);
-    }
-  }
   while ((k = *pcs++) >= 0) {
-    bb = PieceMoves2(p[k], pt[k], occ);
+    bb = PieceMoves(p[k], pt[k], occ);
     idx = idx0 & ~mask[k];
     while (bb) {
       sq = FirstOne(bb);
-      idx2 = MakeMove2(idx, k, sq);
+      idx2 = MakeMove(idx, k, sq);
       int v = table[idx2];
       if (v > best) best = v;
       ClearFirst(bb);
@@ -1087,8 +1026,10 @@ void wdl_load_wdl(struct thread_data *thread)
     }
     for (i = n - 1, idx2 = idx; i > 1; i--, idx2 >>= 6)
       pos[perm[i]] = idx2 & 0x3f;
+#if 0
     pos[perm[0]] = KK_inv[idx2][0];
     pos[perm[1]] = KK_inv[idx2][1];
+#endif
     idx2 = encode_piece(entry, norm, pos, factor);
     v2 = src[idx2];
     if (unlikely(v2 > 4)) table[idx] = W_ERROR;

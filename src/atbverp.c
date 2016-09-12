@@ -1401,7 +1401,7 @@ void load_dtz(struct thread_data *thread)
     idx2 = encode_pawn_ver(entry, norm, pos, factor);
     v2 = src[idx2];
     table[idx] = wdl_to_dtz[v1][v2];
-if(table[idx]==DTZ_ERROR)
+if(unlikely(table[idx]==DTZ_ERROR))
 error("DTZ_ERROR: idx = %llu, v1 = %d, v2 = %d, idx2 = %llu\n", idx, v1, v2, idx2);
   }
 }
@@ -1434,7 +1434,7 @@ void load_dtz_mapped(struct thread_data *thread)
     idx2 = encode_pawn_ver(entry, norm, pos, factor);
     v2 = map[wdl][src[idx2]];
     table[idx] = wdl_to_dtz[v1][v2];
-if(table[idx]==DTZ_ERROR)
+if(unlikely(table[idx]==DTZ_ERROR))
 error("DTZ_ERROR: idx = %llu, v1 = %d, v2 = %d, idx2 = %llu\n", idx, v1, v2, idx2);
   }
 }
@@ -1641,8 +1641,8 @@ void calc_pawn_moves_w(struct thread_data *thread)
     }
 lab:
     table_w[idx] = wdl_pawn[best + 3][table_w[idx]];
-//    if (table_w[idx] == WDL_ERROR)
-//      error("calc_pawn_moves_w: idx = %llu, best = %d\n", idx, best);
+    if (unlikely(table_w[idx] == WDL_ERROR))
+      error("calc_pawn_moves_w: idx = %llu, best = %d\n", idx, best);
   }
 }
 
@@ -1718,8 +1718,8 @@ void calc_pawn_moves_b(struct thread_data *thread)
       }
     }
 lab:
-//    if (wdl_pawn[best + 3][table_b[idx]] == WDL_ERROR)
-//      error("calc_pawn_moves_b: idx = %llu, best = %d, table_b[idx] = %d\n", idx, best, table_b[idx]);
+    if (unlikely(wdl_pawn[best + 3][table_b[idx]] == WDL_ERROR))
+      error("calc_pawn_moves_b: idx = %llu, best = %d, table_b[idx] = %d\n", idx, best, table_b[idx]);
     table_b[idx] = wdl_pawn[best + 3][table_b[idx]];
   }
 }
@@ -1735,7 +1735,7 @@ void verify_opp(struct thread_data *thread)
     int v = opp_table[idx];
     if (v >= WDL_ILLEGAL) {
       opp_table[idx] = wdl_to_dtz_c[v - WDL_ERROR];
-      if (v == WDL_ERROR)
+      if (unlikely(v == WDL_ERROR))
 	error("ERROR: opp table, idx = %llu, v = WDL_ERROR\n", idx);
       continue;
     }
@@ -1743,7 +1743,7 @@ void verify_opp(struct thread_data *thread)
     int w = compute_pieces(opp_pieces, idx, dtz_table, occ, p);
     int z = dtz_to_opp[v][w];
     opp_table[idx] = z;
-    if (z == DTZ_ERROR)
+    if (unlikely(z == DTZ_ERROR))
       error("ERROR: opp table, idx = %llu, v = %d, w = %d\n", idx, v, w);
   }
 }
@@ -1758,13 +1758,13 @@ void verify_dtz(struct thread_data *thread)
   LOOP_ITER_ALL {
     int v = dtz_table[idx];
     if (v == DTZ_ILLEGAL || v >= DTZ_ERROR) {
-      if (v == DTZ_ERROR)
+      if (unlikely(v == DTZ_ERROR))
 	error("ERROR: dtz table, idx = %llu, v = DTZ_ERROR\n", idx);
       continue;
     }
     FILL_OCC;
     int w = compute_pieces(dtz_pieces, idx, opp_table, occ, p);
-    if (!dtz_matrix[v][w])
+    if (unlikely(!dtz_matrix[v][w]))
       error("ERROR: dtz table, idx = %llu, v = %d, w = %d\n", idx, v, w);
   }
 }
@@ -1781,8 +1781,8 @@ void verify_wdl_w(struct thread_data *thread)
     if (w_skip[v]) continue;
     FILL_OCC;
     int w = compute_pieces(pieces, idx, opp_table, occ, p);
-    if (!w_matrix[v][w])
-      error("ERROR: wdl table, idx = %llu, v = %d, w = %d\n", idx, v, w);
+    if (unlikely(!w_matrix[v][w]))
+      error("ERROR: wdl_w table, idx = %llu, v = %d, w = %d\n", idx, v, w);
   }
 }
 
@@ -1798,8 +1798,8 @@ void verify_wdl_b(struct thread_data *thread)
     if (w_skip[v]) continue;
     FILL_OCC;
     int w = compute_pieces(pieces, idx, opp_table, occ, p);
-    if (!w_matrix[v][w])
-      error("ERROR: wdl table, idx = %llu, v = %d, w = %d\n", idx, v, w);
+    if (unlikely(!w_matrix[v][w]))
+      error("ERROR: wdl_b table, idx = %llu, v = %d, w = %d\n", idx, v, w);
   }
 }
 
@@ -1829,7 +1829,7 @@ void wdl_load_wdl(struct thread_data *thread)
     idx2 = encode_pawn_ver(entry, norm, pos, factor);
     v2 = src[idx2];
     table[idx] = w_wdl_matrix[v2][v1];
-if(table[idx]==W_ERROR)
+if(unlikely(table[idx]==W_ERROR))
 error("W_ERROR: idx = %llu, v2 = %d, v1 = %d\n", idx, v2, v1);
   }
 }

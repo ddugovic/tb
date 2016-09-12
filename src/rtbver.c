@@ -921,7 +921,7 @@ error("DTZ_ERROR: idx = %"PRIu64", v1 = %d, v2 = %d, idx2 = %"PRIu64"\n", idx_p,
 
   v2 = src[idx2_p];
   table[idx_p] = wdl_to_dtz[v1_p][v2];
-if(table[idx_p]==DTZ_ERROR)
+if(unlikely(table[idx_p]==DTZ_ERROR))
 error("DTZ_ERROR: idx = %"PRIu64", v1 = %d, v2 = %d, idx2 = %"PRIu64"\n", idx_p, v1_p, v2, idx2_p);
 }
 

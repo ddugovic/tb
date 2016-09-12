@@ -66,39 +66,17 @@ ubyte loss_win[256];
 static int check_loss(int *restrict pcs, long64 idx0, ubyte *restrict table,
 	bitboard occ, int *restrict p)
 {
-  int sq;
+  int k, sq;
   long64 idx, idx2;
   bitboard bb;
   int best = LOSS_IN_ONE;
 
-  int k = *pcs++;
-  if (k == 0) { // white king
-    bb = WhiteKingMoves;
-    while (bb) {
-      sq = FirstOne(bb);
-      idx2 = MakeMove0(idx0, sq);
-      int v = win_loss[table[idx2]];
-      if (!v) return 0;
-      if (v < best) best = v;
-      ClearFirst(bb);
-    }
-  } else { // otherwise k == 1, i.e. black king
-    bb = BlackKingMoves;
-    while (bb) {
-      sq = FirstOne(bb);
-      idx2 = MakeMove1(idx0, sq);
-      int v = win_loss[table[idx2]];
-      if (!v) return 0;
-      if (v < best) best = v;
-      ClearFirst(bb);
-    }
-  }
   while ((k = *pcs++) >= 0) {
-    bb = PieceMoves2(p[k], pt[k], occ);
+    bb = PieceMoves(p[k], pt[k], occ);
     idx = idx0 & ~mask[k];
     while (bb) {
       sq = FirstOne(bb);
-      idx2 = MakeMove2(idx, k, sq);
+      idx2 = MakeMove(idx, k, sq);
       int v = win_loss[table[idx2]];
       if (!v) return 0;
       if (v < best) best = v;
@@ -134,34 +112,16 @@ lab:
 static int check_mate(int *restrict pcs, long64 idx0, ubyte *restrict table,
 	bitboard occ, int *restrict p)
 {
-  int sq;
+  int k, sq;
   long64 idx, idx2;
   bitboard bb;
 
-  int k = *pcs++;
-  if (k == 0) { // white king
-    bb = WhiteKingMoves;
-    while (bb) {
-      sq = FirstOne(bb);
-      idx2 = MakeMove0(idx0, sq);
-      if (table[idx2] != ILLEGAL) return 0;
-      ClearFirst(bb);
-    }
-  } else { // otherwise k == 1, i.e. black king
-    bb = BlackKingMoves;
-    while (bb) {
-      sq = FirstOne(bb);
-      idx2 = MakeMove1(idx0, sq);
-      if (table[idx2] != ILLEGAL) return 0;
-      ClearFirst(bb);
-    }
-  }
   while ((k = *pcs++) >= 0) {
-    bb = PieceMoves2(p[k], pt[k], occ);
+    bb = PieceMoves(p[k], pt[k], occ);
     idx = idx0 & ~mask[k];
     while (bb) {
       sq = FirstOne(bb);
-      idx2 = MakeMove2(idx, k, sq);
+      idx2 = MakeMove(idx, k, sq);
       if (table[idx2] != ILLEGAL) return 0;
       ClearFirst(bb);
     }
@@ -231,22 +191,9 @@ MARK(mark_illegal)
   MARK_END;
 }
 
-MARK_PIVOT0(mark_capt_wins)
+MARK_PIVOT(mark_capt_wins)
 {
-  MARK_BEGIN_PIVOT0;
-  if (table[idx2] != ILLEGAL) {
-    table[idx2] = CAPT_WIN;
-    if (PIVOT_ON_DIAG(idx2)) {
-      long64 idx3 = PIVOT_MIRROR(idx2);
-      table[idx3] = CAPT_WIN;
-    }
-  }
-  MARK_END;
-}
-
-MARK_PIVOT1(mark_capt_wins)
-{
-  MARK_BEGIN_PIVOT1;
+  MARK_BEGIN_PIVOT;
   if (table[idx2] != ILLEGAL) {
     table[idx2] = CAPT_WIN;
     if (PIVOT_ON_DIAG(idx2)) {
@@ -265,20 +212,9 @@ MARK(mark_capt_wins)
   MARK_END;
 }
 
-MARK_PIVOT0(mark_capt_value, ubyte v)
+MARK_PIVOT(mark_capt_value, ubyte v)
 {
-  MARK_BEGIN_PIVOT0;
-  SET_CAPT_VALUE(table[idx2], v);
-  if (PIVOT_ON_DIAG(idx2)) {
-    long64 idx3 = PIVOT_MIRROR(idx2);
-    SET_CAPT_VALUE(table[idx3], v);
-  }
-  MARK_END;
-}
-
-MARK_PIVOT1(mark_capt_value, ubyte v)
-{
-  MARK_BEGIN_PIVOT1;
+  MARK_BEGIN_PIVOT;
   SET_CAPT_VALUE(table[idx2], v);
   if (PIVOT_ON_DIAG(idx2)) {
     long64 idx3 = PIVOT_MIRROR(idx2);
@@ -294,22 +230,9 @@ MARK(mark_capt_value, ubyte v)
   MARK_END;
 }
 
-MARK_PIVOT0(mark_changed)
+MARK_PIVOT(mark_changed)
 {
-  MARK_BEGIN_PIVOT0;
-  if (table[idx2] == UNKNOWN)
-    SET_CHANGED(table[idx2]);
-  if (PIVOT_ON_DIAG(idx2)) {
-    long64 idx3 = PIVOT_MIRROR(idx2);
-    if (table[idx3] == UNKNOWN)
-      SET_CHANGED(table[idx3]);
-  }
-  MARK_END;
-}
-
-MARK_PIVOT1(mark_changed)
-{
-  MARK_BEGIN_PIVOT1;
+  MARK_BEGIN_PIVOT;
   if (table[idx2] == UNKNOWN)
     SET_CHANGED(table[idx2]);
   if (PIVOT_ON_DIAG(idx2)) {
@@ -328,22 +251,9 @@ MARK(mark_changed)
   MARK_END;
 }
 
-MARK_PIVOT0(mark_wins, int v)
+MARK_PIVOT(mark_wins, int v)
 {
-  MARK_BEGIN_PIVOT0;
-  if (table[idx2]) {
-    SET_WIN_VALUE(table[idx2], v);
-    if (PIVOT_ON_DIAG(idx2)) {
-      long64 idx3 = PIVOT_MIRROR(idx2);
-      SET_WIN_VALUE(table[idx3], v);
-    }
-  }
-  MARK_END;
-}
-
-MARK_PIVOT1(mark_wins, int v)
-{
-  MARK_BEGIN_PIVOT1;
+  MARK_BEGIN_PIVOT;
   if (table[idx2]) {
     SET_WIN_VALUE(table[idx2], v);
     if (PIVOT_ON_DIAG(idx2)) {
@@ -366,10 +276,10 @@ static void calc_illegal_w(struct thread_data *thread)
 {
   BEGIN_CAPTS_PIVOT_NOPROBE;
 
-  LOOP_CAPTS_PIVOT1 {
-    FILL_OCC_CAPTS_PIVOT1 {
-      MAKE_IDX2_PIVOT1;
-      LOOP_WHITE_PIECES_PIVOT1(mark_illegal);
+  LOOP_CAPTS_PIVOT {
+    FILL_OCC_CAPTS_PIVOT {
+      MAKE_IDX2_PIVOT;
+      LOOP_WHITE_PIECES_PIVOT(mark_illegal);
     }
   }
 }
@@ -378,10 +288,10 @@ static void calc_illegal_b(struct thread_data *thread)
 {
   BEGIN_CAPTS_PIVOT_NOPROBE;
 
-  LOOP_CAPTS_PIVOT0 {
-    FILL_OCC_CAPTS_PIVOT0 {
-      MAKE_IDX2_PIVOT0;
-      LOOP_BLACK_PIECES_PIVOT0(mark_illegal);
+  LOOP_CAPTS_PIVOT {
+    FILL_OCC_CAPTS_PIVOT {
+      MAKE_IDX2_PIVOT;
+      LOOP_BLACK_PIECES_PIVOT(mark_illegal);
     }
   }
 }
@@ -467,8 +377,9 @@ static void calc_captures_w(void)
   int i, j, k;
   int n = numpcs;
 
-  run_threaded(calc_illegal_w, work_piv1, 1);
+  run_threaded(calc_illegal_w, work_piv, 1);
 
+  if (n < 4) return; // FIXME prevent illegal captures
   for (i = 2; i < n; i++) { // loop over non-king black pieces
     if (!(pt[i] & 0x08)) continue;
     for (k = 0, j = 0; black_pcs[k] >= 0; k++)
@@ -485,8 +396,9 @@ static void calc_captures_b(void)
   int i, j, k;
   int n = numpcs;
 
-  run_threaded(calc_illegal_b, work_piv0, 1);
+  run_threaded(calc_illegal_b, work_piv, 1);
 
+  if (n < 4) return; // FIXME prevent illegal captures
   for (i = 2; i < n; i++) { // loop over non-king white pieces
     if (pt[i] & 0x08) continue;
     for (k = 0, j = 0; white_pcs[k] >= 0; k++)
@@ -498,22 +410,9 @@ static void calc_captures_b(void)
   }
 }
 
-MARK_PIVOT0(mark_win_in_1)
+MARK_PIVOT(mark_win_in_1)
 {
-  MARK_BEGIN_PIVOT0;
-  if (table[idx2] != ILLEGAL && table[idx2] != CAPT_WIN) {
-    table[idx2] = WIN_IN_ONE;
-    if (PIVOT_ON_DIAG(idx2)) {
-      long64 idx3 = PIVOT_MIRROR(idx2);
-      table[idx3] = WIN_IN_ONE;
-    }
-  }
-  MARK_END;
-}
-
-MARK_PIVOT1(mark_win_in_1)
-{
-  MARK_BEGIN_PIVOT1;
+  MARK_BEGIN_PIVOT;
   if (table[idx2] != ILLEGAL && table[idx2] != CAPT_WIN) {
     table[idx2] = WIN_IN_ONE;
     if (PIVOT_ON_DIAG(idx2)) {
@@ -738,24 +637,11 @@ void iterate()
 
 static ubyte *reset_v;
 
-MARK_PIVOT0(reset_capt_closs)
+MARK_PIVOT(reset_capt_closs)
 {
   ubyte *v = reset_v;
 
-  MARK_BEGIN_PIVOT0;
-  if (v[table[idx2]]) table[idx2] = CAPT_CLOSS;
-  if (PIVOT_ON_DIAG(idx2)) {
-    long64 idx3 = PIVOT_MIRROR(idx2);
-    if (v[table[idx3]]) table[idx3] = CAPT_CLOSS;
-  }
-  MARK_END;
-}
-
-MARK_PIVOT1(reset_capt_closs)
-{
-  ubyte *v = reset_v;
-
-  MARK_BEGIN_PIVOT1;
+  MARK_BEGIN_PIVOT;
   if (v[table[idx2]]) table[idx2] = CAPT_CLOSS;
   if (PIVOT_ON_DIAG(idx2)) {
     long64 idx3 = PIVOT_MIRROR(idx2);
@@ -861,37 +747,17 @@ void reset_captures(void)
 int compute_capt_closs(int *restrict pcs, long64 idx0, ubyte *restrict table,
 	bitboard occ, int *restrict p)
 {
-  int sq;
+  int k, sq;
   long64 idx, idx2;
   bitboard bb;
   int best = 0;
 
-  int k = *pcs++;
-  if (k == 0) { // white king
-    bb = WhiteKingMoves;
-    while (bb) {
-      sq = FirstOne(bb);
-      idx2 = MakeMove0(idx0, sq);
-      int v = table[idx2];
-      if (v > best) best = v;
-      ClearFirst(bb);
-    }
-  } else { // otherwise k == 1, i.e. black king
-    bb = BlackKingMoves;
-    while (bb) {
-      sq = FirstOne(bb);
-      idx2 = MakeMove1(idx0, sq);
-      int v = table[idx2];
-      if (v > best) best = v;
-      ClearFirst(bb);
-    }
-  }
   while ((k = *pcs++) >= 0) {
-    bb = PieceMoves2(p[k], pt[k], occ);
+    bb = PieceMoves(p[k], pt[k], occ);
     idx = idx0 & ~mask[k];
     while (bb) {
       sq = FirstOne(bb);
-      idx2 = MakeMove2(idx, k, sq);
+      idx2 = MakeMove(idx, k, sq);
       int v = table[idx2];
       if (v > best) best = v;
       ClearFirst(bb);

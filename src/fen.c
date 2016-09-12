@@ -4,6 +4,9 @@
   This file is distributed under the terms of the GNU GPL, version 2.
 */
 
+#ifndef FEN_H
+#define FEN_H
+
 static char pc[] = { 0, 'P', 'N', 'B', 'R', 'Q', 'K', 0, 0, 'p', 'n', 'b', 'r', 'q', 'k', 0};
 
 static void print_fen(FILE *F, long64 idx, int wtm, int switched)
@@ -45,3 +48,4 @@ static void print_fen(FILE *F, long64 idx, int wtm, int switched)
   }
   fprintf(F, " %c - -\n", wtm ? 'w' : 'b');
 }
+#endif
